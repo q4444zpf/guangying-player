@@ -1,0 +1,21 @@
+---
+description: 开发完成后自动代码审查与编译
+alwaysApply: true
+---
+
+# 开发完成后自动审查与编译
+
+当开发任务完成、代码修改已落地后，**按顺序自动执行**：
+
+1. **代码审查**（先于编译）：
+   - 静态检查：对本次修改涉及的文件运行 `ReadLints`，确认无新增 linter 错误。
+   - 逻辑与结构：检查修改是否符合项目约定，有无明显逻辑错误或遗漏。
+   - 开发思路记录：若涉及架构、接口或实现的重要变更，在 `开发思路.md` 中追加记录。
+
+2. **编译**：编译前先检查应用是否在运行；若运行则执行 `taskkill /IM MediaControlPlayer.App.exe /F` 关闭，再运行 `dotnet build MediaControlPlayer.App\MediaControlPlayer.App.csproj`。
+
+3. **运行**：编译成功后，执行 `dotnet run --project MediaControlPlayer.App --no-build` 直接运行应用（可后台运行）。
+
+4. **编译错误处理**：若编译失败，根据错误信息**自动修改代码**直至编译通过；修改后再次执行审查与编译，直至成功。
+
+5. **反馈**：审查和编译完成后，**必须向用户汇报**：审查结果（有无 linter 问题）、编译结果（成功/失败）、若有问题则说明并给出修复建议。

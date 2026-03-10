@@ -1,0 +1,8 @@
+<Application x:Class="MediaControlPlayer.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MediaControlPlayer.App">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>

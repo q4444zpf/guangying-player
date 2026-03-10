@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>光影播放器 · 测试界面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f3f4f6;
+      }
+      #app {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      h1 {
+        margin-bottom: 16px;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        background: #fafafa;
+      }
+      .card h2 {
+        margin-top: 0;
+      }
+      .upload-row {
+        margin: 6px 0;
+      }
+      .contents-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+        font-size: 13px;
+      }
+      .contents-table th,
+      .contents-table td {
+        border: 1px solid #ccc;
+        padding: 4px 6px;
+        word-break: break-all;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 12px;
+        margin: 8px 0;
+      }
+      .button-row button {
+        margin-right: 8px;
+        margin-top: 4px;
+      }
+      pre {
+        background: #111827;
+        color: #e5e7eb;
+        padding: 8px;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow: auto;
+        font-size: 12px;
+      }
+      input,
+      select,
+      button {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>光影播放器 · 测试界面（纯 JS）</h1>
+
+      <!-- 基础设置 -->
+      <section class="card">
+        <h2>基础设置</h2>
+        <label>
+          后端地址：
+          <input id="baseUrl" style="width: 280px" />
+        </label>
+        <button id="btnHealth">健康检查 /api/health</button>
+        <div id="healthResult"></div>
+      </section>
+
+      <!-- 上传媒体文件 -->
+      <section class="card">
+        <h2>1. 上传媒体文件</h2>
+
+        <div class="upload-row">
+          <label>上传视频：
+            <input type="file" id="videoFile" accept="video/*" />
+          </label>
+          <button id="btnUploadVideo">上传视频</button>
+          <span id="videoPath"></span>
+        </div>
+
+        <div class="upload-row">
+          <label>上传音频：
+            <input type="file" id="audioFile" accept="audio/*" />
+          </label>
+          <button id="btnUploadAudio">上传音频</button>
+          <span id="audioPath"></span>
+        </div>
+
+        <div class="upload-row">
+          <label>上传图片：
+            <input type="file" id="imageFile" accept="image/*" />
+          </label>
+          <button id="btnUploadImage">上传图片</button>
+          <span id="imagePath"></span>
+        </div>
+      </section>
+
+      <!-- 播放内容管理 -->
+      <section class="card">
+        <h2>2. 播放内容管理（SQLite）</h2>
+
+        <button id="btnLoadContents">刷新列表 /api/contents</button>
+
+        <table class="contents-table">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>名称</th>
+              <th>类型</th>
+              <th>播放</th>
+              <th>排序</th>
+              <th>视频</th>
+              <th>图片</th>
+              <th>音频</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="contentsBody"></tbody>
+        </table>
+
+        <h3>新建内容</h3>
+        <div class="form-grid">
+          <label>
+            名称：
+            <input id="newName" />
+          </label>
+          <label>
+            类型：
+            <select id="newType">
+              <option value="video">视频</option>
+              <option value="imageWithAudio">图片 + 音频</option>
+            </select>
+          </label>
+          <label>
+            视频路径：
+            <input id="newVideoPath" />
+          </label>
+          <label>
+            图片路径：
+            <input id="newImagePath" />
+          </label>
+          <label>
+            音频路径：
+            <input id="newAudioPath" />
+          </label>
+          <label>
+            描述：
+            <input id="newDescription" />
+          </label>
+          <label>
+            参与播放：
+            <input type="checkbox" id="newIsEnabled" checked />
+          </label>
+          <label>
+            播放排序：
+            <input type="number" id="newPlayOrder" value="0" style="width: 60px" />
+          </label>
+        </div>
+        <button id="btnCreateContent">创建 /api/contents</button>
+      </section>
+
+      <!-- 播放控制 -->
+      <section class="card">
+        <h2>3. 播放控制</h2>
+
+        <h3>按路径播放 /api/player/play</h3>
+        <div class="form-grid">
+          <label>
+            类型：
+            <select id="playType">
+              <option value="video">视频</option>
+              <option value="imageWithAudio">图片 + 音频</option>
+            </select>
+          </label>
+          <label>
+            视频路径：
+            <input id="playVideoPath" />
+          </label>
+          <label>
+            图片路径：
+            <input id="playImagePath" />
+          </label>
+          <label>
+            音频路径：
+            <input id="playAudioPath" />
+          </label>
+        </div>
+        <button id="btnPlayByPath">按路径播放</button>
+
+        <h3>按内容 Id 播放 /api/player/play/{id}</h3>
+        <label>
+          内容 Id：
+          <input id="playId" style="width: 80px" />
+        </label>
+        <button id="btnPlayById">播放</button>
+
+        <h3>播放列表 /api/player/play/playlist</h3>
+        <p style="font-size: 12px; color: #666;">按播放排序连续播放所有启用的内容</p>
+        <button id="btnPlayPlaylist">播放播放列表</button>
+        <label style="margin-left: 12px;">
+          <input type="checkbox" id="chkLoop" title="循环播放" />
+          循环播放
+        </label>
+        <span id="loopStatus" style="font-size: 12px; color: #666; margin-left: 8px;"></span>
+
+        <h3>基础控制</h3>
+        <div class="button-row">
+          <button data-path="/api/player/pause" class="btn-simple">暂停</button>
+          <button data-path="/api/player/resume" class="btn-simple">继续</button>
+          <button data-path="/api/player/restart" class="btn-simple">重新播放</button>
+          <button data-path="/api/player/stop" class="btn-simple">停止</button>
+        </div>
+      </section>
+
+      <!-- 系统控制 -->
+      <section class="card">
+        <h2>4. 系统控制</h2>
+        <div class="button-row">
+          <button data-path="/api/system/display-off" class="btn-simple">关屏</button>
+          <button data-path="/api/system/display-on" class="btn-simple">亮屏</button>
+          <button data-path="/api/system/sleep" class="btn-simple">睡眠</button>
+          <button data-path="/api/system/reboot" class="btn-simple">重启</button>
+          <button data-path="/api/system/shutdown" class="btn-simple">关机</button>
+        </div>
+        <p style="color: red; font-size: 12px;">
+          注意：关机 / 重启 / 睡眠 会直接影响目标机，请谨慎点击。
+        </p>
+      </section>
+
+      <!-- 消息 -->
+      <section class="card">
+        <h2>消息 / 错误</h2>
+        <pre id="message"></pre>
+      </section>
+    </div>
+
+    <script>
+      const baseUrlInput = document.getElementById('baseUrl')
+      const healthResult = document.getElementById('healthResult')
+      const messageEl = document.getElementById('message')
+
+      baseUrlInput.value = window.location.origin.replace(/\/$/, '')
+
+      function api(path) {
+        return baseUrlInput.value + path
+      }
+
+      function setMessage(text) {
+        messageEl.textContent = text || ''
+      }
+
+      async function checkHealth() {
+        setMessage('')
+        healthResult.textContent = ''
+        try {
+          const res = await fetch(api('/api/health'))
+          if (!res.ok) throw new Error(await res.text())
+          const data = await res.json()
+          healthResult.textContent = '当前状态：' + JSON.stringify(data)
+        } catch (err) {
+          setMessage(err.message || '健康检查失败')
+        }
+      }
+
+      async function upload(kind, fileInputId, pathSpanId, url) {
+        const input = document.getElementById(fileInputId)
+        const file = input.files[0]
+        if (!file) {
+          setMessage('请先选择要上传的文件')
+          return
+        }
+        const formData = new FormData()
+        formData.append('file', file)
+        setMessage('')
+        try {
+          const res = await fetch(api(url), { method: 'POST', body: formData })
+          if (!res.ok) throw new Error(await res.text())
+          const data = await res.json()
+          document.getElementById(pathSpanId).textContent = data.path
+
+          // 同步到新建内容 / 按路径播放输入框，方便使用
+          if (kind === 'video') {
+            document.getElementById('newVideoPath').value = data.path
+            document.getElementById('playVideoPath').value = data.path
+          }
+          if (kind === 'audio') {
+            document.getElementById('newAudioPath').value = data.path
+            document.getElementById('playAudioPath').value = data.path
+          }
+          if (kind === 'image') {
+            document.getElementById('newImagePath').value = data.path
+            document.getElementById('playImagePath').value = data.path
+          }
+
+          setMessage('上传成功: ' + data.path)
+        } catch (err) {
+          setMessage(err.message || '上传失败')
+        }
+      }
+
+      async function loadContents() {
+        setMessage('')
+        const tbody = document.getElementById('contentsBody')
+        tbody.innerHTML = ''
+        try {
+          const res = await fetch(api('/api/contents'))
+          if (!res.ok) throw new Error(await res.text())
+          const list = await res.json()
+          list.forEach((c) => {
+            const tr = document.createElement('tr')
+            tr.innerHTML = `
+              <td>${c.id}</td>
+              <td>${c.name || ''}</td>
+              <td>${c.type || ''}</td>
+              <td>
+                <input type="checkbox" data-id="${c.id}" class="chk-enabled" ${c.isEnabled ? 'checked' : ''} title="是否参与播放列表" />
+              </td>
+              <td>
+                <input type="number" data-id="${c.id}" class="inp-order" value="${c.playOrder ?? 0}" style="width: 50px" title="排序" />
+              </td>
+              <td>${c.videoPath || ''}</td>
+              <td>${c.imagePath || ''}</td>
+              <td>${c.audioPath || ''}</td>
+              <td>
+                <button data-id="${c.id}" class="btn-play-row">播放</button>
+                <button data-id="${c.id}" class="btn-delete-row">删除</button>
+              </td>`
+            tbody.appendChild(tr)
+          })
+        } catch (err) {
+          setMessage(err.message || '加载失败')
+        }
+      }
+
+      async function createContent() {
+        setMessage('')
+        const payload = {
+          name: document.getElementById('newName').value,
+          type: document.getElementById('newType').value,
+          videoPath: document.getElementById('newVideoPath').value || null,
+          imagePath: document.getElementById('newImagePath').value || null,
+          audioPath: document.getElementById('newAudioPath').value || null,
+          description: document.getElementById('newDescription').value || null,
+          isEnabled: document.getElementById('newIsEnabled').checked,
+          playOrder: parseInt(document.getElementById('newPlayOrder').value, 10) || 0,
+        }
+        try {
+          const res = await fetch(api('/api/contents'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          if (!res.ok) throw new Error(await res.text())
+          const data = await res.json()
+          setMessage('创建内容成功, id=' + data.id)
+          await loadContents()
+        } catch (err) {
+          setMessage(err.message || '创建失败')
+        }
+      }
+
+      async function deleteContent(id) {
+        if (!confirm('确定要删除内容 ' + id + ' ?')) return
+        setMessage('')
+        try {
+          const res = await fetch(api('/api/contents/' + id), { method: 'DELETE' })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('删除内容 ' + id + ' 成功')
+          await loadContents()
+        } catch (err) {
+          setMessage(err.message || '删除失败')
+        }
+      }
+
+      async function playByPath() {
+        setMessage('')
+        const payload = {
+          type: document.getElementById('playType').value,
+          videoPath: document.getElementById('playVideoPath').value || null,
+          imagePath: document.getElementById('playImagePath').value || null,
+          audioPath: document.getElementById('playAudioPath').value || null,
+        }
+        try {
+          const res = await fetch(api('/api/player/play'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('按路径播放请求已发送')
+        } catch (err) {
+          setMessage(err.message || '播放失败')
+        }
+      }
+
+      async function playById() {
+        setMessage('')
+        const id = document.getElementById('playId').value
+        if (!id) {
+          setMessage('请先输入内容 id')
+          return
+        }
+        try {
+          const res = await fetch(api('/api/player/play/' + id), { method: 'POST' })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('播放 id=' + id + ' 请求已发送')
+        } catch (err) {
+          setMessage(err.message || '按 id 播放失败')
+        }
+      }
+
+      async function simplePost(path) {
+        setMessage('')
+        try {
+          const res = await fetch(api(path), { method: 'POST' })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('已调用 ' + path)
+        } catch (err) {
+          setMessage(err.message || '请求失败')
+        }
+      }
+
+      // 事件绑定
+      document.getElementById('btnHealth').addEventListener('click', checkHealth)
+      document.getElementById('btnUploadVideo').addEventListener('click', () =>
+        upload('video', 'videoFile', 'videoPath', '/api/files/upload/video')
+      )
+      document.getElementById('btnUploadAudio').addEventListener('click', () =>
+        upload('audio', 'audioFile', 'audioPath', '/api/files/upload/audio')
+      )
+      document.getElementById('btnUploadImage').addEventListener('click', () =>
+        upload('image', 'imageFile', 'imagePath', '/api/files/upload/image')
+      )
+      document.getElementById('btnLoadContents').addEventListener('click', loadContents)
+      document.getElementById('btnCreateContent').addEventListener('click', createContent)
+      document.getElementById('btnPlayByPath').addEventListener('click', playByPath)
+      document.getElementById('btnPlayById').addEventListener('click', playById)
+
+      document.querySelectorAll('.btn-simple').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const path = btn.getAttribute('data-path')
+          simplePost(path)
+        })
+      })
+
+      async function updatePlaylistField(id, field, value) {
+        setMessage('')
+        try {
+          const res = await fetch(api(`/api/contents/${id}/playlist`), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value }),
+          })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('已更新')
+        } catch (err) {
+          setMessage(err.message || '更新失败')
+        }
+      }
+
+      async function syncLoopState() {
+        try {
+          const res = await fetch(api('/api/player/loop'))
+          if (!res.ok) return
+          const data = await res.json()
+          const chk = document.getElementById('chkLoop')
+          const status = document.getElementById('loopStatus')
+          chk.checked = data.isLooping
+          status.textContent = data.isLooping ? '已开启' : '已关闭'
+        } catch (_) {}
+      }
+
+      async function setLooping(checked) {
+        setMessage('')
+        try {
+          const res = await fetch(api('/api/player/loop'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isLooping: checked }),
+          })
+          if (!res.ok) throw new Error(await res.text())
+          const data = await res.json()
+          document.getElementById('loopStatus').textContent = data.isLooping ? '已开启' : '已关闭'
+          setMessage(data.isLooping ? '已开启循环播放' : '已关闭循环播放')
+        } catch (err) {
+          setMessage(err.message || '设置失败')
+        }
+      }
+
+      async function playPlaylist() {
+        setMessage('')
+        try {
+          const res = await fetch(api('/api/player/play/playlist'), { method: 'POST' })
+          if (!res.ok) throw new Error(await res.text())
+          setMessage('播放列表已开始')
+        } catch (err) {
+          setMessage(err.message || '播放失败')
+        }
+      }
+
+      document.getElementById('contentsBody').addEventListener('click', (e) => {
+        const playBtn = e.target.closest('.btn-play-row')
+        const deleteBtn = e.target.closest('.btn-delete-row')
+        if (playBtn) {
+          document.getElementById('playId').value = playBtn.getAttribute('data-id')
+          playById()
+        } else if (deleteBtn) {
+          deleteContent(deleteBtn.getAttribute('data-id'))
+        }
+      })
+
+      document.getElementById('contentsBody').addEventListener('change', (e) => {
+        const chk = e.target.closest('.chk-enabled')
+        const inp = e.target.closest('.inp-order')
+        if (chk) {
+          updatePlaylistField(chk.getAttribute('data-id'), 'isEnabled', chk.checked)
+        } else if (inp) {
+          updatePlaylistField(inp.getAttribute('data-id'), 'playOrder', parseInt(inp.value, 10) || 0)
+        }
+      })
+
+      document.getElementById('btnPlayPlaylist').addEventListener('click', playPlaylist)
+
+      document.getElementById('chkLoop').addEventListener('change', (e) => {
+        setLooping(e.target.checked)
+      })
+
+      // 页面加载时同步循环状态
+      syncLoopState()
+    </script>
+  </body>
+</html>
+
