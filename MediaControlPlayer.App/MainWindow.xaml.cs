@@ -187,7 +187,7 @@ public partial class MainWindow : Window
         DeferredUpdatePlayButtonVisibility();
     }
 
-    private void DeferredUpdatePlayButtonVisibility()
+    public void DeferredUpdatePlayButtonVisibility()
     {
         // LibVLC 的 IsPlaying 会异步更新，延迟 80ms 再刷新，避免读到旧状态导致图标显示反了
         var timer = new System.Windows.Threading.DispatcherTimer

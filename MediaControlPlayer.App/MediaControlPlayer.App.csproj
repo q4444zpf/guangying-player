@@ -34,6 +34,11 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="StopAppBeforeBuild" BeforeTargets="Build">
+    <Exec Command="taskkill /IM MediaControlPlayer.App.exe /F" IgnoreExitCode="true" />
+    <Exec Command="ping -n 2 127.0.0.1 &gt;nul" IgnoreExitCode="true" />
+  </Target>
+
   <Target Name="LaunchAfterBuild" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <Exec Command="cmd /c start &quot;&quot; &quot;$(TargetPath)&quot;" />
   </Target>

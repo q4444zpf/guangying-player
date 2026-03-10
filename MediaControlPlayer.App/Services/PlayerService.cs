@@ -255,9 +255,17 @@ public sealed class PlayerService
         }
     }
 
-    public void Pause() => _mediaPlayer.Pause();
+    public void Pause()
+    {
+        _mediaPlayer.Pause();
+        _mainWindow?.Dispatcher.BeginInvoke(() => _mainWindow.DeferredUpdatePlayButtonVisibility());
+    }
 
-    public void Resume() => _mediaPlayer.Play();
+    public void Resume()
+    {
+        _mediaPlayer.Play();
+        _mainWindow?.Dispatcher.BeginInvoke(() => _mainWindow.DeferredUpdatePlayButtonVisibility());
+    }
 
     public void TogglePlayPause()
     {
@@ -280,6 +288,7 @@ public sealed class PlayerService
     {
         _playlist = null;
         _mediaPlayer.Stop();
+        _mainWindow?.Dispatcher.BeginInvoke(() => _mainWindow.DeferredUpdatePlayButtonVisibility());
     }
 
     public void Restart()
@@ -293,6 +302,7 @@ public sealed class PlayerService
         _hasEnded = false;
         _mediaPlayer.Stop();
         _mediaPlayer.Play(media);
+        _mainWindow?.Dispatcher.BeginInvoke(() => _mainWindow.DeferredUpdatePlayButtonVisibility());
     }
 }
 
