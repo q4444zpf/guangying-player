@@ -221,6 +221,14 @@
         </label>
         <span id="loopStatus" style="font-size: 12px; color: #666; margin-left: 8px;"></span>
 
+        <h3>启动设置 /api/settings/autoplay</h3>
+        <p style="font-size: 12px; color: #666;">下次启动时是否自动播放播放列表</p>
+        <label>
+          <input type="checkbox" id="chkAutoPlay" title="启动自动播放" />
+          启动自动播放
+        </label>
+        <span id="autoPlayStatus" style="font-size: 12px; color: #666; margin-left: 8px;"></span>
+
         <h3>基础控制</h3>
         <div class="button-row">
           <button data-path="/api/player/pause" class="btn-simple">暂停</button>
@@ -476,6 +484,35 @@
         }
       }
 
+      async function syncAutoPlayState() {
+        try {
+          const res = await fetch(api('/api/settings/autoplay'))
+          if (!res.ok) return
+          const data = await res.json()
+          const chk = document.getElementById('chkAutoPlay')
+          const status = document.getElementById('autoPlayStatus')
+          chk.checked = data.isAutoPlay
+          status.textContent = data.isAutoPlay ? '已开启' : '已关闭'
+        } catch (_) {}
+      }
+
+      async function setAutoPlay(checked) {
+        setMessage('')
+        try {
+          const res = await fetch(api('/api/settings/autoplay'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isAutoPlay: checked }),
+          })
+          if (!res.ok) throw new Error(await res.text())
+          const data = await res.json()
+          document.getElementById('autoPlayStatus').textContent = data.isAutoPlay ? '已开启' : '已关闭'
+          setMessage(data.isAutoPlay ? '已开启启动自动播放' : '已关闭启动自动播放')
+        } catch (err) {
+          setMessage(err.message || '设置失败')
+        }
+      }
+
       async function syncLoopState() {
         try {
           const res = await fetch(api('/api/player/loop'))
@@ -543,8 +580,13 @@
         setLooping(e.target.checked)
       })
 
-      // 页面加载时同步循环状态
+      document.getElementById('chkAutoPlay').addEventListener('change', (e) => {
+        setAutoPlay(e.target.checked)
+      })
+
+      // 页面加载时同步状态
       syncLoopState()
+      syncAutoPlayState()
     </script>
   </body>
 </html>

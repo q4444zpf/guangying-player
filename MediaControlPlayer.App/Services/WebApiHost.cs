@@ -157,6 +157,9 @@ public sealed class WebApiHost
             if (body != null)
             {
                 player.IsLooping = body.IsLooping;
+                var settings = DataSettingsHelper.Load(_databasePath);
+                settings.IsLooping = body.IsLooping;
+                await DataSettingsHelper.SaveAsync(_databasePath, settings, context.RequestAborted);
             }
             return Results.Ok(new { isLooping = player.IsLooping });
         });
@@ -314,6 +317,25 @@ public sealed class WebApiHost
         });
 
         app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+
+        app.MapGet("/api/settings/autoplay", () =>
+        {
+            var settings = DataSettingsHelper.Load(_databasePath);
+            return Results.Ok(new { isAutoPlay = settings.IsAutoPlay });
+        });
+
+        app.MapPost("/api/settings/autoplay", async (HttpContext context, PlayerService player) =>
+        {
+            var body = await context.Request.ReadFromJsonAsync<AutoPlayRequest>(context.RequestAborted);
+            if (body == null)
+            {
+                return Results.BadRequest("Invalid request");
+            }
+            var settings = DataSettingsHelper.Load(_databasePath);
+            settings.IsAutoPlay = body.IsAutoPlay;
+            await DataSettingsHelper.SaveAsync(_databasePath, settings, context.RequestAborted);
+            return Results.Ok(new { isAutoPlay = settings.IsAutoPlay });
+        });
 
         app.Urls.Add(url);
 

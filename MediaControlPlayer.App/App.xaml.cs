@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Windows;
 
 using MediaControlPlayer.App.Data;
+using MediaControlPlayer.App.Models;
 using MediaControlPlayer.App.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,13 +57,20 @@ public partial class App : Application
 
         var databasePath = EnsureDatabasePath(_settings);
         var mediaRoot = EnsureMediaRoot(_settings);
+
+        var dataSettings = DataSettingsHelper.Load(databasePath);
+        _playerService.IsLooping = dataSettings.IsLooping;
+
         _webApiHost = new WebApiHost(_playerService, _powerService, databasePath, mediaRoot);
 
         mainWindow.Show();
 
         await _webApiHost.StartAsync(_settings.WebApi.Url);
 
-        StartPlaylistIfAvailable(_playerService, databasePath);
+        if (dataSettings.IsAutoPlay)
+        {
+            StartPlaylistIfAvailable(_playerService, databasePath);
+        }
     }
 
     private static void StartPlaylistIfAvailable(PlayerService player, string databasePath)

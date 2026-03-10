@@ -99,6 +99,13 @@ dotnet run --project MediaControlPlayer.App/MediaControlPlayer.App.csproj
 | POST | `/api/system/reboot` | 重启 |
 | POST | `/api/system/shutdown` | 关机 |
 
+### 启动设置
+
+| 方法 | 路径 | 说明 |
+|-----|------|------|
+| GET | `/api/settings/autoplay` | 获取启动是否自动播放 |
+| POST | `/api/settings/autoplay` | 设置启动自动播放（body: `{ "isAutoPlay": true }`） |
+
 ### 其他
 
 | 方法 | 路径 | 说明 |
@@ -141,6 +148,20 @@ MediaControlPlayer.App/
 └── wwwroot/
     └── index.html         # 测试界面
 ```
+
+## 配置文件
+
+`Data/settings.json` 存储播放相关配置（与 `media.db` 同目录）：
+
+```json
+{
+  "isAutoPlay": true,
+  "isLooping": false
+}
+```
+
+- **isAutoPlay**：启动时是否自动播放播放列表
+- **isLooping**：播放列表是否循环播放
 
 ## 注意事项
 
